@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,6 +29,7 @@ import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 import model.Livre;
 
@@ -41,7 +44,7 @@ import model.Livre;
  * @author rachid dev
  */
 public class Kindle extends JFrame {
-    private static int location= 10000000;
+    private static int location= 1;
     public static final String ANSI_GREEN = "\u001B[32m";
       static boolean repeat=true;
       Connection con = null;
@@ -99,17 +102,21 @@ public class Kindle extends JFrame {
                        
                          location++;
                         int locationsend = location;
-                        
-                        if (locationsend<10000006  ) {
-                            sortie.write(locationsend+"\n") ;
+                        String locationF;
+                        locationF = Files.readAllLines(Paths.get("IotFiles\\KindleGps.txt")).get(locationsend);
+                        int loc = Integer.parseInt(locationF);
+                        if (loc<500  ) {
+                            sortie.write(loc+"\n") ;
                          sortie.flush();
                        
                   
                 }else{
-                            
-                              System.out.println(ANSI_GREEN + "This text is red!" + ANSI_GREEN);
+                            JOptionPane.showMessageDialog(null, "you can't use Kindle outside University ");
+                              
                               sortie.write("kindle stolled"+"\n") ;
                          sortie.flush();
+                         timer.cancel();//stop the timer
+                         System.exit(0);
                         }
                         
                     } catch (IOException ex) {
@@ -117,9 +124,9 @@ public class Kindle extends JFrame {
                     }
                     
                 }
-                }, 0, 2000);//wait 0 ms before doing the action and do it evry 1000ms (1second)
+                }, 0, 10000);//wait 0 ms before doing the action and do it evry 1000ms (1second)
 
-//timer.cancel();//stop the timer
+
       
             int choix= (new Scanner(System.in)).nextInt();
             sortie.write(choix+"\n") ; 
