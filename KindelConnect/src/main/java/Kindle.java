@@ -226,8 +226,56 @@ public class Kindle extends JFrame {
                         break;
                 case 3:
                     //quit(entree,sortie); 
-                     System.out.println("leave choised");
-                    break;
+                     
+                    System.out.println(" Veuillez saisir le nom d'editeur :");  
+                        String editeur = (new Scanner(System.in)).nextLine();;
+                        sortie.write("editeur\n")   ;
+                        sortie.write(editeur+'\n')  ;  
+                        sortie.flush()              ; 
+                        
+                        System.out.println("Veuillez choisir un document à afficher :");
+                        
+                         Kindle compte4 = new Kindle();
+                        LinkedList<Livre> docs;
+                    docs = compte4.getLivreByEditeur(editeur);
+                        
+                           int nbr = 0 ;
+                           for(int i = 0 ; i < docs.size();i++){ 
+                             System.out.println(i+" :"+docs.get(i).getIsbn()+"editeur:"+docs.get(i).getEditeur()+"Edition :"+docs.get(i).getEdition());
+                             nbr++;
+                            }  
+                            
+                           if (nbr>0){
+                           int ch = (new Scanner(System.in)).nextInt(); 
+                           
+                                    if(ch < nbr && ch> -1){ 
+                                    //affichage du document
+                     
+                            String pdf = docs.get(ch).getUrl();
+                            
+                            Platform.runLater(new Runnable() {
+                            @Override
+                            public void run()
+                             {
+                                  WebEngine engine;
+                                  WebView wv=new WebView();
+                                  engine=wv.getEngine();
+                                  fxpanel.setScene(new Scene(wv));
+                                  engine.load(pdf);
+                                 }
+                             });
+                               frame.setVisible(true);
+                                    }
+                                    else 
+                                        System.out.println("choix invalid");
+                       
+                           }else{
+                               System.out.println("Aucune Livre correspond au nome d(editeur saisie");
+                           }
+                  
+                        
+                        
+                        break;
             }
             
             
@@ -297,6 +345,30 @@ public class Kindle extends JFrame {
         LinkedList<Livre> livres= new   LinkedList<Livre> ();
         
         while (rs.next()) {
+           String isbn=rs.getString("isbn");
+           String editeur=rs.getString("editeur");
+           String auteur=rs.getString("auteur");
+           int edition=rs.getInt("edition");
+           int nbpages=rs.getInt("nbpages");
+           String auteurs[]={auteur};
+           String url=rs.getString("url");
+           Livre l = new Livre(titre, editeur, edition, isbn,auteurs,url,nbpages);
+           livres.add(l);
+       }
+
+       return livres;
+    }
+    
+    LinkedList<Livre> getLivreByEditeur(String editeurName) throws SQLException{
+     con = DbConnection.getConnection();
+                   stmt = con.createStatement();
+        String query="select * from livre where editeur  like '"+editeurName+"' ";
+        ResultSet rs=stmt.executeQuery(query);
+        
+        LinkedList<Livre> livres= new   LinkedList<Livre> ();
+        
+        while (rs.next()) {
+            String titre = rs.getString("titre");
            String isbn=rs.getString("isbn");
            String editeur=rs.getString("editeur");
            String auteur=rs.getString("auteur");
