@@ -34,6 +34,7 @@ import javax.swing.WindowConstants;
 import model.Document;
 import model.Livre;
 
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -50,6 +51,11 @@ public class Kindle extends JFrame {
       static boolean repeat=true;
       Connection con = null;
     public Statement stmt;
+
+ 
+    public Kindle(){
+   
+    }
     
    public static void main (String args[]) throws IOException, SQLException 
     { 
@@ -62,6 +68,10 @@ public class Kindle extends JFrame {
         int port = 1000 ;
         
         Socket soc = new Socket (hote, port) ;
+        IotMaps mp = new IotMaps();
+
+            String IotMaps = mp.getGpsFile();
+            System.out.println("IotMaps :"+IotMaps+" : connected");
         OutputStream flux1 = soc.getOutputStream() ; 
         OutputStreamWriter sortie = new OutputStreamWriter (flux1) ;
         InputStream flux2=soc.getInputStream();
@@ -70,14 +80,17 @@ public class Kindle extends JFrame {
         System.out.println("login comme Etudiant Ou Professeuer");
         String type= (new Scanner(System.in)).nextLine();
         sortie.write(type+"\n") ;
-        
-       if (type.equalsIgnoreCase("etudiant")){
-           System.out.println(" Login");
+        sortie.flush();
+         System.out.println(" Login");
         String login= (new Scanner(System.in)).nextLine();
         sortie.write(login+"\n") ;
+        sortie.flush();
          System.out.println(" mot de pass");
         String mdp= (new Scanner(System.in)).nextLine();
         sortie.write("mot de pass :*******"+"\n") ;
+        sortie.flush();
+       if (type.equalsIgnoreCase("etudiant")){
+          
             //Etudiant e = null;
            Kindle compte = new Kindle();
            boolean acc = compte.verefierCompteEtudiant(login,mdp);
@@ -104,7 +117,7 @@ public class Kindle extends JFrame {
                          location++;
                         int locationsend = location;
                         String locationF;
-                        locationF = Files.readAllLines(Paths.get("IotFiles\\KindleGps.txt")).get(locationsend);
+                        locationF = Files.readAllLines(Paths.get("IotFiles\\"+IotMaps)).get(locationsend);
                         int loc = Integer.parseInt(locationF);
                         if (loc<500  ) {
                             sortie.write(loc+"\n") ;
@@ -276,10 +289,69 @@ public class Kindle extends JFrame {
                         
                         
                         break;
-            }
+                        case 4:
+                    //quit(entree,sortie); 
+                     
+                    System.out.println(" Veuillez saisir le nom d'Auteur :");  
+                        String auteur = (new Scanner(System.in)).nextLine();;
+                        sortie.write("Auteur\n")   ;
+                        sortie.write(auteur+'\n')  ;  
+                        sortie.flush()              ; 
+                        
+                        System.out.println("Veuillez choisir un document à lire :");
+                        
+                         Kindle compte5 = new Kindle();
+                        LinkedList<Livre> docs1;
+                    docs1 = compte5.getLivreByAuteur(auteur);
+                        
+                           int nbr1 = 0 ;
+                           for(int i = 0 ; i < docs1.size();i++){ 
+                             System.out.println(i+" :"+docs1.get(i).getIsbn()+"editeur:"+docs1.get(i).getEditeur()+"Edition :"+docs1.get(i).getEdition());
+                             nbr1++;
+                            }  
+                            
+                           if (nbr1>0){
+                           int ch = (new Scanner(System.in)).nextInt(); 
+                           
+                                    if(ch < nbr1 && ch> -1){ 
+                                    //affichage du document
+                     
+                            String pdf = docs1.get(ch).getUrl();
+                            
+                            Platform.runLater(new Runnable() {
+                            @Override
+                            public void run()
+                             {
+                                  WebEngine engine;
+                                  WebView wv=new WebView();
+                                  engine=wv.getEngine();
+                                  fxpanel.setScene(new Scene(wv));
+                                  engine.load(pdf);
+                                 }
+                             });
+                               frame.setVisible(true);
+                                    }
+                                    else 
+                                        System.out.println("choix invalid");
+                       
+                           }else{
+                               System.out.println("Aucune Livre correspond au auteur saisie");
+                           }
+                  
+                        
+                        
+                        break;
+            
             
             
         }
+            } 
+           }else{
+               System.out.println("Login ou Mot de pass incorrect");
+               System.out.println("Bienvenue au Ensias Mediatheque ");
+        System.out.println("login comme Etudiant Ou Professeuer");
+         type= (new Scanner(System.in)).nextLine();
+ 
            }
            }
        
@@ -382,5 +454,30 @@ public class Kindle extends JFrame {
 
        return livres;
     }
+    
+    LinkedList<Livre> getLivreByAuteur(String auteurName) throws SQLException{
+     con = DbConnection.getConnection();
+                   stmt = con.createStatement();
+        String query="select * from livre where auteur  like '"+auteurName+"' ";
+        ResultSet rs=stmt.executeQuery(query);
+        
+        LinkedList<Livre> livres= new   LinkedList<Livre> ();
+        
+        while (rs.next()) {
+            String titre = rs.getString("titre");
+           String isbn=rs.getString("isbn");
+           String editeur=rs.getString("editeur");
+           String auteur=rs.getString("auteur");
+           int edition=rs.getInt("edition");
+           int nbpages=rs.getInt("nbpages");
+           String auteurs[]={auteur};
+           String url=rs.getString("url");
+           Livre l = new Livre(titre, editeur, edition, isbn,auteurs,url,nbpages);
+           livres.add(l);
+       }
+
+       return livres;
+    }
+    
    
 }
