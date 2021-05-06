@@ -1,5 +1,8 @@
 
 import DbConnection.DbConnection;
+import com.mycompany.kindelconnect.DocumentsController;
+import com.mycompany.kindelconnect.EtudiantController;
+import com.mycompany.kindelconnect.ProfesseurController;
 import java.awt.Desktop;
 import java.awt.Panel;
 import java.io.BufferedReader;
@@ -51,11 +54,14 @@ public class Kindle extends JFrame {
       static boolean repeat=true;
       Connection con = null;
     public Statement stmt;
+  public static   String IotMaps;
+
 
  
     public Kindle(){
    
     }
+    
     
    public static void main (String args[]) throws IOException, SQLException 
     { 
@@ -66,17 +72,23 @@ public class Kindle extends JFrame {
             frame.add(fxpanel);
         String hote = "127.0.0.1" ;
         int port = 1000 ;
+         Kindle compte = new Kindle();
+          EtudiantController compteEtu = new EtudiantController();
+          ProfesseurController compteProf = new ProfesseurController();
+          DocumentsController documents = new DocumentsController();
         
         Socket soc = new Socket (hote, port) ;
-        IotMaps mp = new IotMaps();
+        
 
-            String IotMaps = mp.getGpsFile();
-            System.out.println("IotMaps :"+IotMaps+" : connected");
+            IotMaps = new IotMaps().getGpsFile();
+           System.out.println("IotMaps :"+IotMaps+" : connected");
         OutputStream flux1 = soc.getOutputStream() ; 
         OutputStreamWriter sortie = new OutputStreamWriter (flux1) ;
         InputStream flux2=soc.getInputStream();
         BufferedReader entree = new BufferedReader (new InputStreamReader (flux2));
       System.out.println("Bienvenue au Ensias Mediatheque ");
+      //IotMaps =entree.readLine();
+       //System.out.println("IotMaps :"+IotMaps+" : connected");
         System.out.println("login comme Etudiant Ou Professeuer");
         String type= (new Scanner(System.in)).nextLine();
         sortie.write(type+"\n") ;
@@ -89,20 +101,16 @@ public class Kindle extends JFrame {
         String mdp= (new Scanner(System.in)).nextLine();
         sortie.write("mot de pass :*******"+"\n") ;
         sortie.flush();
+         
        if (type.equalsIgnoreCase("etudiant")){
           
             //Etudiant e = null;
-           Kindle compte = new Kindle();
-           boolean acc = compte.verefierCompteEtudiant(login,mdp);
+         
+           boolean acc = compteEtu.verefierCompteEtudiant(login,mdp);
            if (acc) {
                   while (repeat){
            
-                System.out.println("Bienvenue au Ensias Mediatheque ");
-                System.out.println("Veuillez choisir une option:\n     ");
-                System.out.println("1: Chercher un document par ISBN   ");
-                System.out.println("2: Chercher un document par titre  ");
-                System.out.println("3: Chercher un document par Editeur");
-                System.out.println("4: Chercher un document par Auteur ");
+                compte.showMenu();
                  
                 //private static int counter = 0;
                Timer timer = new Timer();
@@ -153,8 +161,8 @@ public class Kindle extends JFrame {
                         sortie.write(isbn +'\n');
                         sortie.flush();
                          Livre  d=null;
-                          Kindle compte2 = new Kindle();
-                        d= compte2.searchDocumentByIsbn(isbn);
+                         
+                        d= documents.searchDocumentByIsbn(isbn);
                         if(d != null){
                             System.out.println(d.getTitre()); 
                             String pdf = d.getUrl();
@@ -197,11 +205,11 @@ public class Kindle extends JFrame {
                         System.out.println("Veuillez choisir un document à lire :");
                  
                    
-                        Kindle compte3 = new Kindle();
-                        LinkedList<Livre> documents = compte3.getLivreByTitre(titre);  
+                       
+                        LinkedList<Livre> documentsb = documents.getLivreByTitre(titre);  
                            int nb = 0 ;
-                           for(int i = 0 ; i < documents.size();i++){ 
-                             System.out.println(i+" :"+documents.get(i).getIsbn()+"by : editeur:"+documents.get(i).getEditeur());
+                           for(int i = 0 ; i < documentsb.size();i++){ 
+                             System.out.println(i+" :"+documentsb.get(i).getIsbn()+"by : editeur:"+documentsb.get(i).getEditeur());
                              nb++;
                            }  
                             if (nb==0){
@@ -215,7 +223,7 @@ public class Kindle extends JFrame {
                                     if(livre < nb && livre> -1){ 
                                     //affichage du document
                      
-                            String pdf = documents.get(livre).getUrl();
+                            String pdf = documentsb.get(livre).getUrl();
                             
                             Platform.runLater(new Runnable() {
                             @Override
@@ -248,9 +256,9 @@ public class Kindle extends JFrame {
                         
                         System.out.println("Veuillez choisir un document à afficher :");
                         
-                         Kindle compte4 = new Kindle();
+                
                         LinkedList<Livre> docs;
-                    docs = compte4.getLivreByEditeur(editeur);
+                    docs = documents.getLivreByEditeur(editeur);
                         
                            int nbr = 0 ;
                            for(int i = 0 ; i < docs.size();i++){ 
@@ -300,10 +308,9 @@ public class Kindle extends JFrame {
                         
                         System.out.println("Veuillez choisir un document à lire :");
                         
-                         Kindle compte5 = new Kindle();
-                        LinkedList<Livre> docs1;
-                    docs1 = compte5.getLivreByAuteur(auteur);
-                        
+                     
+                    LinkedList<Livre> docs1;
+                    docs1 = documents.getLivreByAuteur(auteur);                        
                            int nbr1 = 0 ;
                            for(int i = 0 ; i < docs1.size();i++){ 
                              System.out.println(i+" :"+docs1.get(i).getIsbn()+"editeur:"+docs1.get(i).getEditeur()+"Edition :"+docs1.get(i).getEdition());
@@ -353,12 +360,275 @@ public class Kindle extends JFrame {
          type= (new Scanner(System.in)).nextLine();
  
            }
-           }
+           
+           
+           ////   professeur area
+           
+           
+           
+           
+           }else if(type.equalsIgnoreCase("professeur")){
+                boolean acc = compteProf.verefierCompteProfesseur(login,mdp);
+           if (acc) {
+                  while (repeat){
+                      compte.showMenu();
+                
+   
+                //private static int counter = 0;
+               Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    
+                @Override
+                public void run() {
+      //what you want to do
+         
+                    try { 
+                       
+                         location++;
+                        int locationsend = location;
+                        String locationF;
+                        locationF = Files.readAllLines(Paths.get("IotFiles\\"+IotMaps)).get(locationsend);
+                        int loc = Integer.parseInt(locationF);
+                        if (loc<500  ) {
+                            sortie.write(loc+"\n") ;
+                         sortie.flush();
+                       
+                  
+                }else{
+                            JOptionPane.showMessageDialog(null, "you can't use Kindle outside University ");
+                              
+                              sortie.write("kindle stolled"+"\n") ;
+                         sortie.flush();
+                         timer.cancel();//stop the timer
+                         System.exit(0);
+                        }
+                        
+                    } catch (IOException ex) {
+                        Logger.getLogger(Kindle.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                }
+                }, 0, 10000);//wait 0 ms before doing the action and do it evry 1000ms (1second)
+
+
+      
+            int choix= (new Scanner(System.in)).nextInt();
+            sortie.write(choix+"\n") ; 
+            sortie.flush();
+            switch (choix){
+                case 1:
+                    System.out.println("Veuillez saisir l'ISBN");
+                        String isbn = (new Scanner(System.in)).nextLine();
+                        sortie.write("isbn\n");
+                        sortie.write(isbn +'\n');
+                        sortie.flush();
+                         Livre  d=null;
+                          
+                        d= documents.searchDocumentByIsbn(isbn);
+                        if(d != null){
+                            System.out.println(d.getTitre()); 
+                            String pdf = d.getUrl();
+                            /*
+                            try {
+                                Desktop desktop = java.awt.Desktop.getDesktop();
+                                URI oURL = new URI(pdf);
+                                desktop.browse(oURL);
+                                } catch (Exception e) {
+                                 e.printStackTrace();
+                                 }
+                                   */
+                            Platform.runLater(new Runnable() {
+                            @Override
+                            public void run()
+                             {
+                                WebEngine engine;
+                                  WebView wv=new WebView();
+                                  engine=wv.getEngine();
+                                  
+                                  fxpanel.setScene(new Scene(wv));
+                                  engine.load(pdf);
+                                 }
+                             });
+                               frame.setVisible(true);
+                        }else{
+                            System.out.println("aucun livre avec se SBN exist");
+                        }
+                    //tell(entree,sortie);
+                    //System.out.println("tell choised");
+                    break;
+                    case 2:
+                    //learn(entree,sortie);
+                      System.out.println(" Veuillez saisir le titre : ");  
+                        String titre   = (new Scanner(System.in)).nextLine();;
+                        sortie.write("titre\n");
+                        sortie.write(titre+'\n');
+                        sortie.flush(); 
+                        
+                        System.out.println("Veuillez choisir un document à lire :");
+                 
+              
+                        LinkedList<Livre> docs = documents.getLivreByTitre(titre);  
+                           int nb = 0 ;
+                           for(int i = 0 ; i < docs.size();i++){ 
+                             System.out.println(i+" :"+docs.get(i).getIsbn()+"by : editeur:"+docs.get(i).getEditeur());
+                             nb++;
+                           }  
+                            if (nb==0){
+                                System.out.println("aucune document trouvé avec ce titre");      
+                            }
+                            else{
+                            
+                           int livre = (new Scanner(System.in)).nextInt();
+                                  
+                                  
+                                    if(livre < nb && livre> -1){ 
+                                    //affichage du document
+                     
+                            String pdf = docs.get(livre).getUrl();
+                            
+                            Platform.runLater(new Runnable() {
+                            @Override
+                            public void run()
+                             {
+                                  WebEngine engine;
+                                  WebView wv=new WebView();
+                                  engine=wv.getEngine();
+                                  fxpanel.setScene(new Scene(wv));
+                                  engine.load(pdf);
+                                 }
+                             });
+                               frame.setVisible(true);
+                                    }
+                                    else 
+                                        System.out.println("choix invalid");
+            
+                                   
+                            }
+     
+                        break;
+                    case 3:
+                    //quit(entree,sortie); 
+                     
+                    System.out.println(" Veuillez saisir le nom d'editeur :");  
+                        String editeur = (new Scanner(System.in)).nextLine();;
+                        sortie.write("editeur\n")   ;
+                        sortie.write(editeur+'\n')  ;  
+                        sortie.flush()              ; 
+                        
+                        System.out.println("Veuillez choisir un document à afficher :");
+                        
+                        LinkedList<Livre> docs1 = documents.getLivreByEditeur(editeur);  
+
+                        
+                           int nbr = 0 ;
+                           for(int i = 0 ; i < docs1.size();i++){ 
+                             System.out.println(i+" :"+docs1.get(i).getIsbn()+"editeur:"+docs1.get(i).getEditeur()+"Edition :"+docs1.get(i).getEdition());
+                             nbr++;
+                            }  
+                            
+                           if (nbr>0){
+                           int ch = (new Scanner(System.in)).nextInt(); 
+                           
+                                    if(ch < nbr && ch> -1){ 
+                                    //affichage du document
+                     
+                            String pdf = docs1.get(ch).getUrl();
+                            
+                            Platform.runLater(new Runnable() {
+                            @Override
+                            public void run()
+                             {
+                                  WebEngine engine;
+                                  WebView wv=new WebView();
+                                  engine=wv.getEngine();
+                                  fxpanel.setScene(new Scene(wv));
+                                  engine.load(pdf);
+                                 }
+                             });
+                               frame.setVisible(true);
+                                    }
+                                    else 
+                                        System.out.println("choix invalid");
+                       
+                           }else{
+                               System.out.println("Aucune Livre correspond au nome d(editeur saisie");
+                           }
+                  
+                        
+                        
+                        break;
+                     case 4:
+                    //quit(entree,sortie); 
+                     
+                    System.out.println(" Veuillez saisir le nom d'Auteur :");  
+                        String auteur = (new Scanner(System.in)).nextLine();;
+                        sortie.write("Auteur\n")   ;
+                        sortie.write(auteur+'\n')  ;  
+                        sortie.flush()              ; 
+                        
+                        System.out.println("Veuillez choisir un document à lire :");
+                   
+                        LinkedList<Livre> docsb;  
+                          docsb = documents.getLivreByAuteur(auteur);
+                        
+                           int nbr1 = 0 ;
+                           for(int i = 0 ; i < docsb.size();i++){ 
+                             System.out.println(i+" :"+docsb.get(i).getIsbn()+"editeur:"+docsb.get(i).getEditeur()+"Edition :"+docsb.get(i).getEdition());
+                             nbr1++;
+                            }  
+                            
+                           if (nbr1>0){
+                           int ch = (new Scanner(System.in)).nextInt(); 
+                           
+                                    if(ch < nbr1 && ch> -1){ 
+                                    //affichage du document
+                     
+                            String pdf = docsb.get(ch).getUrl();
+                            
+                            Platform.runLater(new Runnable() {
+                            @Override
+                            public void run()
+                             {
+                                  WebEngine engine;
+                                  WebView wv=new WebView();
+                                  engine=wv.getEngine();
+                                  fxpanel.setScene(new Scene(wv));
+                                  engine.load(pdf);
+                                 }
+                             });
+                               frame.setVisible(true);
+                                    }
+                                    else 
+                                        System.out.println("choix invalid");
+                       
+                           }else{
+                               System.out.println("Aucune Livre correspond au auteur saisie");
+                           }
+                  
+                        
+                        
+                        break;
+            
+            
+            
+         }
+            } 
+           }else{
+               System.out.println("Login ou Mot de pass incorrect");
+               System.out.println("Bienvenue au Ensias Mediatheque ");
+        System.out.println("login comme Etudiant Ou Professeuer");
+         type= (new Scanner(System.in)).nextLine();
+ 
+           }          
+           
        
         
      
         soc.close();
-        }
+     
+ 
+           }
+    }
 
     public  boolean verefierCompteEtudiant(String cin,String mdp) throws SQLException {
      con = DbConnection.getConnection();
@@ -479,5 +749,17 @@ public class Kindle extends JFrame {
        return livres;
     }
     
+    
+    public void showMenu(){
+        System.out.println("Bienvenue au Ensias Mediatheque ");
+                System.out.println("Veuillez choisir une option:\n     ");
+                System.out.println("1: Chercher un document par ISBN   ");
+                System.out.println("2: Chercher un document par titre  ");
+                System.out.println("3: Chercher un document par Editeur");
+                System.out.println("4: Chercher un document par Auteur ");
+    }
+    
    
+    
+    
 }
